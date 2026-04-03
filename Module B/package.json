@@ -1,0 +1,32 @@
+{
+  "name": "gateguard-api",
+  "version": "1.0.0",
+  "description": "GateGuard API - Database Course Assignment Module B",
+  "main": "app/server.js",
+  "scripts": {
+    "start": "node app/server.js",
+    "dev": "node --watch app/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "express",
+    "sqlite3",
+    "jwt",
+    "authentication",
+    "rbac"
+  ],
+  "author": "Database Course",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jq": "^1.7.2",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "sqlite3": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
