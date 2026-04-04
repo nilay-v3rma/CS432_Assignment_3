@@ -3,8 +3,6 @@ from wal import WALLogger
 from lock_manager import LockManager
 
 class DatabaseManager:
-    # def __init__(self):
-    #     self.databases = {}  # Dictionary to store databases as {db_name: {table_name: Table instance}}
 
     def __init__(self, log_filepath="db_transaction.log"):
         self.databases = {}  

@@ -111,13 +111,6 @@ class BPlusTree:
             parent.children.insert(index + 1, new_internal)
 
 
-    # def delete(self, key):
-    #     """Delete a key from the B+ tree"""
-    #     self._delete(self.root, key)
-    #     # If root is internal and has only one child, make child the new root
-    #     if not self.root.is_leaf and len(self.root.children) == 1:
-    #         self.root = self.root.children[0]
-
     def delete(self, key):
         """Delete a key from the B+ tree and return the deleted value for logging"""
         # First, find the value so we can return it
@@ -220,18 +213,6 @@ class BPlusTree:
             child.keys.extend(sibling.keys)
             child.children.extend(sibling.children)
             node.children.pop(index+1)
-
-
-    # def update(self, key, new_value):
-    #     node = self.root
-    #     while not node.is_leaf:
-    #         i = bisect.bisect_left(node.keys, key)
-    #         node = node.children[i]
-    #     i = bisect.bisect_left(node.keys, key)
-    #     if i < len(node.keys) and node.keys[i] == key:
-    #         node.values[i] = new_value
-    #         return True
-    #     return False
 
 
     def range_query(self, start_key, end_key):

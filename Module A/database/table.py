@@ -26,18 +26,6 @@ class Table:
                 raise ValueError(f"Unknown column: {col}")
         return True
 
-    # def insert(self, record):
-    #     """
-    #     Insert a new record into the table.
-    #     The record should be a dictionary matching the schema.
-    #     The key used for insertion should be the value of the `search_key` field.
-    #     """
-    #     self.validate_record(record)
-    #     key = record[self.search_key]
-    #     self.data.insert(key, record)
-
-    # UPDATE THESE METHODS in table.py
-
     def insert(self, record, tx=None):
         self.validate_record(record)
         key = record[self.search_key]
@@ -85,20 +73,6 @@ class Table:
         Retrieve all records stored in the table in sorted order by search key
         """
         return [v for k, v in self.data.get_all()]
-
-    # def update(self, record_id, new_record):
-    #     """
-    #     Update a record identified by `record_id` with `new_record` data.
-    #     Usually overwrites the existing entry.
-    #     """
-    #     self.validate_record(new_record)
-    #     return self.data.update(record_id, new_record)
-
-    # def delete(self, record_id):
-    #     """
-    #     Delete the record from the table by its `record_id`
-    #     """
-    #     return self.data.delete(record_id)
 
     def range_query(self, start_value, end_value):
         """

@@ -143,8 +143,7 @@ def main():
     print("\nVerifying DB state after rollback:")
     print("Bob's Request Status :", guest_req_tbl.get("REQ-002")["Status"])
     print("Bob's Person Record :", person_tbl.get("P-101"))
-    print("ATOMICITY VERIFIED: Incomplete transaction fully rolled back.")
-
+    print("ATOMICITY VERIFIED: Incomplete transaction fully rolled back.\n")
 
     print_separator("PHASE 4: CONCURRENCY TEST (TESTING ISOLATION)")
     print("Spawning two users attempting to update REQ-001 simultaneously...\n")
