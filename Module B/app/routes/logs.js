@@ -376,16 +376,15 @@ const logExit = (req, res, db) => {
       });
     }
 
-    if (log.exit_time) {
-      return res.status(400).json({
-        success: false,
-        message: 'Exit already logged for this entry',
-      });
-    }
+    // In this unified people_log schema, an exit is inserted as a new log row instead of updating an entry time. 
+    // The requirement was meant to log a new exit. We will insert an exit log for this person.
+    
+    const insertQuery = `
+      INSERT INTO people_log (gate_id, person_id, vehicle_id, log_type) 
+      VALUES (?, ?, ?, 'exit')
+    `;
 
-    const updateQuery = 'UPDATE people_log SET exit_time = datetime("now") WHERE log_id = ?';
-
-    db.run(updateQuery, [log_id], function (err) {
+    db.run(insertQuery, [log.gate_id, log.person_id, log.vehicle_id], function (err) {
       if (err) {
         console.error('Database error:', err.message);
         return res.status(500).json({
@@ -399,9 +398,9 @@ const logExit = (req, res, db) => {
         success: true,
         message: 'Exit logged successfully',
         data: {
-          log_id: parseInt(log_id),
-          exit_time: new Date().toISOString(),
-        },
+          log_id: this.lastID,
+          time: new Date().toISOString(),
+        }
       });
     });
   });

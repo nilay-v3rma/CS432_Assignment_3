@@ -588,7 +588,7 @@ const approveGuestRequest = (req, res, db) => {
       });
     }
 
-    const updateQuery = 'UPDATE guest_request SET status = "approved" WHERE guest_request_id = ?';
+    const updateQuery = 'UPDATE guest_request SET status = "approved" WHERE guest_request_id = ? AND status = "pending"';
 
     db.run(updateQuery, [id], function (err) {
       if (err) {
@@ -597,6 +597,13 @@ const approveGuestRequest = (req, res, db) => {
           success: false,
           message: 'Failed to approve guest request',
           error: err.message,
+        });
+      }
+
+      if (this.changes === 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'Race condition detected: Request was already handled by another process.',
         });
       }
 
@@ -643,7 +650,7 @@ const rejectGuestRequest = (req, res, db) => {
       });
     }
 
-    const updateQuery = 'UPDATE guest_request SET status = "rejected" WHERE guest_request_id = ?';
+    const updateQuery = 'UPDATE guest_request SET status = "rejected" WHERE guest_request_id = ? AND status = "pending"';
 
     db.run(updateQuery, [id], function (err) {
       if (err) {
@@ -652,6 +659,13 @@ const rejectGuestRequest = (req, res, db) => {
           success: false,
           message: 'Failed to reject guest request',
           error: err.message,
+        });
+      }
+
+      if (this.changes === 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'Race condition detected: Request was already handled by another process.',
         });
       }
 
