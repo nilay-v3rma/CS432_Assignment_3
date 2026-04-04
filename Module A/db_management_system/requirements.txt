@@ -1,4 +1,0 @@
-graphviz
-numpy
-pandas
-matplotlib
