@@ -1,0 +1,27 @@
+{"tx_id": "561d9504-9d89-4649-bc49-5a35bf8ccfbb", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "561d9504-9d89-4649-bc49-5a35bf8ccfbb", "operation": "INSERT", "table_name": "GuestRequest", "key": "REQ-001", "old_value": null, "new_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Pending"}}
+{"tx_id": "561d9504-9d89-4649-bc49-5a35bf8ccfbb", "operation": "COMMIT", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "UPDATE", "table_name": "GuestRequest", "key": "REQ-001", "old_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Pending"}, "new_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Entered"}}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "INSERT", "table_name": "Person_Info", "key": "P-100", "old_value": null, "new_value": {"Person_ID": "P-100", "Name": "Alice Smith", "Person_Type": "Guest"}}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "INSERT", "table_name": "QR_Code", "key": "QR-999", "old_value": null, "new_value": {"QR_ID": "QR-999", "Person_ID": "P-100", "Is_Active": true}}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "INSERT", "table_name": "Log", "key": "L-001", "old_value": null, "new_value": {"Log_ID": "L-001", "Person_ID": "P-100", "Gate_ID": "Gate-A", "Timestamp": "2026-04-04 23:47:47.550072"}}
+{"tx_id": "22fa8604-7ac3-4a05-9ce6-0e30d1af7299", "operation": "COMMIT", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "10258628-955d-4161-ba91-8c284c592b89", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "10258628-955d-4161-ba91-8c284c592b89", "operation": "ROLLBACK", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "c2def18e-c82f-454d-aaf2-27e00bbb20a7", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "c2def18e-c82f-454d-aaf2-27e00bbb20a7", "operation": "INSERT", "table_name": "GuestRequest", "key": "REQ-002", "old_value": null, "new_value": {"Request_ID": "REQ-002", "Guest_Name": "Bob Jones", "Status": "Pending"}}
+{"tx_id": "c2def18e-c82f-454d-aaf2-27e00bbb20a7", "operation": "COMMIT", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "405c5473-506c-4264-991a-c6094fe101b2", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "405c5473-506c-4264-991a-c6094fe101b2", "operation": "UPDATE", "table_name": "GuestRequest", "key": "REQ-002", "old_value": {"Request_ID": "REQ-002", "Guest_Name": "Bob Jones", "Status": "Pending"}, "new_value": {"Request_ID": "REQ-002", "Guest_Name": "Bob Jones", "Status": "Entered"}}
+{"tx_id": "405c5473-506c-4264-991a-c6094fe101b2", "operation": "INSERT", "table_name": "Person_Info", "key": "P-101", "old_value": null, "new_value": {"Person_ID": "P-101", "Name": "Bob Jones", "Person_Type": "Guest"}}
+{"tx_id": "405c5473-506c-4264-991a-c6094fe101b2", "operation": "ROLLBACK", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "cceb5731-0daa-4860-b400-9ccd0113edca", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "cceb5731-0daa-4860-b400-9ccd0113edca", "operation": "UPDATE", "table_name": "GuestRequest", "key": "REQ-001", "old_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Entered"}, "new_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Processing_T1"}}
+{"tx_id": "3183ac13-858c-4eb7-b2f0-7138d9d958ca", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "cceb5731-0daa-4860-b400-9ccd0113edca", "operation": "COMMIT", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "3183ac13-858c-4eb7-b2f0-7138d9d958ca", "operation": "UPDATE", "table_name": "GuestRequest", "key": "REQ-001", "old_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Processing_T1"}, "new_value": {"Request_ID": "REQ-001", "Guest_Name": "Alice Smith", "Status": "Processing_T2"}}
+{"tx_id": "3183ac13-858c-4eb7-b2f0-7138d9d958ca", "operation": "COMMIT", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "3ec7c8a4-72c7-4900-b5e1-6c9820d63a30", "operation": "BEGIN", "table_name": null, "key": null, "old_value": null, "new_value": null}
+{"tx_id": "3ec7c8a4-72c7-4900-b5e1-6c9820d63a30", "operation": "UPDATE", "table_name": "GuestRequest", "key": "REQ-002", "old_value": {"Request_ID": "REQ-002", "Guest_Name": "Bob Jones", "Status": "Pending"}, "new_value": {"Request_ID": "REQ-002", "Guest_Name": "Bob Jones", "Status": "Entered"}}
+{"tx_id": "3ec7c8a4-72c7-4900-b5e1-6c9820d63a30", "operation": "INSERT", "table_name": "Person_Info", "key": "P-CRASH", "old_value": null, "new_value": {"Person_ID": "P-CRASH", "Name": "Crash User", "Person_Type": "Guest"}}
