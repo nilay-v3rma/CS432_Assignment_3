@@ -427,51 +427,72 @@ const processQRScan = (req, res, db) => {
     });
   }
 
-  // Find QR code and check valid_till
-  db.get('SELECT * FROM qr_code WHERE qr_info = ?', [qr_info], (err, row) => {
-    if (err) {
-        console.error('Database error:', err.message);
-        return res.status(500).json({ success: false, message: 'Database error' });
-    }
-    
-    if (!row) return res.status(404).json({ success: false, message: 'Invalid QR Code' });
-    
-    // Check valid_till vs current time
-    if (new Date(row.valid_till) < new Date()) {
-      return res.status(403).json({ success: false, message: 'QR Code Expired' });
+  db.run('BEGIN EXCLUSIVE TRANSACTION', (txErr) => {
+    if (txErr) {
+      console.error('Transaction error:', txErr.message);
+      return res.status(500).json({ success: false, message: 'Database busy, try again' });
     }
 
-    const newFlag = row.in_campus_flag ? 0 : 1;
-    const logType = newFlag ? 'entry' : 'exit';
-
-    // Toggle in_campus_flag
-    db.run('UPDATE qr_code SET in_campus_flag = ? WHERE qr_info = ?', [newFlag, qr_info], (updateErr) => {
-      if (updateErr) {
-          console.error('Database update error:', updateErr.message);
-          return res.status(500).json({ success: false, message: 'Failed to update QR status' });
+    // Find QR code and check valid_till
+    db.get('SELECT * FROM qr_code WHERE qr_info = ?', [qr_info], (err, row) => {
+      if (err) {
+          console.error('Database error:', err.message);
+          db.run('ROLLBACK');
+          return res.status(500).json({ success: false, message: 'Database error' });
       }
       
-      // Check for vehicle
-      db.get('SELECT vehicle_id FROM vehicle WHERE person_id = ? LIMIT 1', [row.person_id], (vehErr, vehRow) => {
-        const vehicle_id = vehRow ? vehRow.vehicle_id : null;
+      if (!row) {
+        db.run('ROLLBACK');
+        return res.status(404).json({ success: false, message: 'Invalid QR Code' });
+      }
+      
+      // Check valid_till vs current time
+      if (new Date(row.valid_till) < new Date()) {
+        db.run('ROLLBACK');
+        return res.status(403).json({ success: false, message: 'QR Code Expired' });
+      }
+
+      const newFlag = row.in_campus_flag ? 0 : 1;
+      const logType = newFlag ? 'entry' : 'exit';
+
+      // Toggle in_campus_flag
+      db.run('UPDATE qr_code SET in_campus_flag = ? WHERE qr_info = ?', [newFlag, qr_info], (updateErr) => {
+        if (updateErr) {
+            console.error('Database update error:', updateErr.message);
+            db.run('ROLLBACK');
+            return res.status(500).json({ success: false, message: 'Failed to update QR status' });
+        }
         
-        // Insert into people_log
-        const query = 'INSERT INTO people_log (gate_id, person_id, vehicle_id, log_type) VALUES (?, ?, ?, ?)';
-        db.run(query, [gate_id, row.person_id, vehicle_id, logType], function(logErr) {
-          if (logErr) {
-            console.error('Database insert error:', logErr.message);
-            return res.status(500).json({ success: false, message: 'Failed to log event' });
-          }
+        // Check for vehicle
+        db.get('SELECT vehicle_id FROM vehicle WHERE person_id = ? LIMIT 1', [row.person_id], (vehErr, vehRow) => {
+          const vehicle_id = vehRow ? vehRow.vehicle_id : null;
           
-          return res.status(200).json({ 
-              success: true, 
-              message: `Access Granted: ${logType.toUpperCase()} marked successfully`,
-              data: {
-                  log_id: this.lastID,
-                  person_id: row.person_id,
-                  log_type: logType,
-                  vehicle_id
+          // Insert into people_log
+          const query = 'INSERT INTO people_log (gate_id, person_id, vehicle_id, log_type) VALUES (?, ?, ?, ?)';
+          db.run(query, [gate_id, row.person_id, vehicle_id, logType], function(logErr) {
+            if (logErr) {
+              console.error('Database insert error:', logErr.message);
+              db.run('ROLLBACK');
+              return res.status(500).json({ success: false, message: 'Failed to log event' });
+            }
+            
+            db.run('COMMIT', (commitErr) => {
+              if (commitErr) {
+                console.error('Commit err:', commitErr.message);
+                return res.status(500).json({ success: false, message: 'Failed to commit transaction' });
               }
+
+              return res.status(200).json({ 
+                  success: true, 
+                  message: `Access Granted: ${logType.toUpperCase()} marked successfully`,
+                  data: {
+                      log_id: this.lastID,
+                      person_id: row.person_id,
+                      log_type: logType,
+                      vehicle_id
+                  }
+              });
+            });
           });
         });
       });

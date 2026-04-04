@@ -58,7 +58,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.error('❌ Database connection failed:', err.message);
     process.exit(1);
   }
-  console.log('✅ Connected to SQLite database');
+  db.run('PRAGMA journal_mode = WAL;');
+  db.run('PRAGMA busy_timeout = 5000;');
+  console.log('✅ Connected to SQLite database with WAL and busy_timeout=5000');
 });
 
 // ============================================================================
@@ -88,6 +90,22 @@ const auditFormat =
 
 // Apply Morgan middleware for audit logging
 app.use(morgan(auditFormat, { stream: auditLogStream }));
+
+/**
+ * Capture Error Logs
+ * Intercepts console.error to log detailed errors to a dedicated error.log
+ */
+const errorLogStream = fs.createWriteStream(
+  path.join(logDirectory, 'error.log'),
+  { flags: 'a' }
+);
+const originalConsoleError = console.error;
+console.error = function (...args) {
+  const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+  const timestamp = new Date().toISOString();
+  errorLogStream.write(`[${timestamp}] ERROR: ${message}\n`);
+  originalConsoleError.apply(console, args);
+};
 
 // Middleware: Parse JSON bodies
 app.use(express.json());

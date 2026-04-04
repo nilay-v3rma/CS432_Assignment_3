@@ -128,57 +128,73 @@ const createMember = (req, res, db) => {
   }
 
   // First, insert into person_info table
-  const personQuery = 'INSERT INTO person_info (age) VALUES (?)';
-
-  db.run(personQuery, [age || null], function (personErr) {
-    if (personErr) {
-      console.error('Database error:', personErr.message);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create person record',
-      });
+  db.run('BEGIN EXCLUSIVE TRANSACTION', (txErr) => {
+    if (txErr) {
+      console.error('Transaction error:', txErr.message);
+      return res.status(500).json({ success: false, message: 'Database busy, try again' });
     }
 
-    const personId = this.lastID;
+    const personQuery = 'INSERT INTO person_info (age) VALUES (?)';
 
-    // Then insert into member table
-    const memberQuery =
-      'INSERT INTO member (member_id, person_id, name, image, age, email, contact) VALUES (?, ?, ?, ?, ?, ?, ?)';
-
-    db.run(
-      memberQuery,
-      [member_id, personId, name, image || null, age || null, email, contact],
-      function (err) {
-        if (err) {
-          console.error('Database error:', err.message);
-          if (err.message.includes('UNIQUE constraint failed')) {
-            return res.status(409).json({
-              success: false,
-              message: 'Member ID, email, or contact already exists',
-            });
-          }
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to create member',
-            error: err.message,
-          });
-        }
-
-        res.status(201).json({
-          success: true,
-          message: 'Member created successfully',
-          data: {
-            member_id,
-            person_id: personId,
-            name,
-            email,
-            contact,
-            age: age || null,
-            image: image || null,
-          },
+    db.run(personQuery, [age || null], function (personErr) {
+      if (personErr) {
+        console.error('Database error:', personErr.message);
+        db.run('ROLLBACK');
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to create person record',
         });
       }
-    );
+
+      const personId = this.lastID;
+
+      // Then insert into member table
+      const memberQuery =
+        'INSERT INTO member (member_id, person_id, name, image, age, email, contact) VALUES (?, ?, ?, ?, ?, ?, ?)';
+
+      db.run(
+        memberQuery,
+        [member_id, personId, name, image || null, age || null, email, contact],
+        function (err) {
+          if (err) {
+            console.error('Database error:', err.message);
+            db.run('ROLLBACK');
+            if (err.message.includes('UNIQUE constraint failed')) {
+              return res.status(409).json({
+                success: false,
+                message: 'Member ID, email, or contact already exists',
+              });
+            }
+            return res.status(500).json({
+              success: false,
+              message: 'Failed to create member',
+              error: err.message,
+            });
+          }
+          
+          db.run('COMMIT', (commitErr) => {
+            if (commitErr) {
+               console.error('Commit error:', commitErr.message);
+               return res.status(500).json({ success: false, message: 'Failed to commit member' });
+            }
+
+            res.status(201).json({
+              success: true,
+              message: 'Member created successfully',
+              data: {
+                member_id,
+                person_id: personId,
+                name,
+                email,
+                contact,
+                age: age || null,
+                image: image || null,
+              },
+            });
+          });
+        }
+      );
+    });
   });
 };
 

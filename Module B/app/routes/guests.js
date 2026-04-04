@@ -162,64 +162,81 @@ const createGuest = (req, res, db) => {
       }
 
       // Create person_info record first
-      const personQuery = 'INSERT INTO person_info (age) VALUES (?)';
-
-      db.run(personQuery, [request.age || null], function (personErr) {
-        if (personErr) {
-          console.error('Database error:', personErr.message);
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to create person record',
-          });
+      db.run('BEGIN EXCLUSIVE TRANSACTION', (txErr) => {
+        if (txErr) {
+          console.error('Transaction error:', txErr.message);
+          return res.status(500).json({ success: false, message: 'Database busy, try again' });
         }
+        
+        const personQuery = 'INSERT INTO person_info (age) VALUES (?)';
 
-        const personId = this.lastID;
-
-        // Generate guest ID (GUEST_01, GUEST_02, etc.)
-        db.get('SELECT COUNT(*) as count FROM guest', (countErr, result) => {
-          if (countErr) {
-            console.error('Database error:', countErr.message);
+        db.run(personQuery, [request.age || null], function (personErr) {
+          if (personErr) {
+            console.error('Database error:', personErr.message);
+            db.run('ROLLBACK');
             return res.status(500).json({
               success: false,
-              message: 'Failed to generate guest ID',
+              message: 'Failed to create person record',
             });
           }
 
-          const guestId = `GUEST_${String(result.count + 1).padStart(2, '0')}`;
+          const personId = this.lastID;
 
-          // Insert guest
-          const guestQuery =
-            'INSERT INTO guest (guest_id, person_id, room_number, vehicle_id, guest_request_id) VALUES (?, ?, ?, ?, ?)';
-
-          db.run(
-            guestQuery,
-            [guestId, personId, room_number, vehicle_id || null, guest_request_id],
-            function (guestErr) {
-              if (guestErr) {
-                console.error('Database error:', guestErr.message);
-                return res.status(500).json({
-                  success: false,
-                  message: 'Failed to create guest',
-                  error: guestErr.message,
-                });
-              }
-
-              res.status(201).json({
-                success: true,
-                message: 'Guest created successfully',
-                data: {
-                  guest_id: guestId,
-                  person_id: personId,
-                  room_number,
-                  vehicle_id: vehicle_id || null,
-                  guest_request_id,
-                  name: request.name,
-                  email: request.email,
-                  contact: request.contact,
-                },
+          // Generate guest ID (GUEST_01, GUEST_02, etc.) inside the transaction
+          db.get('SELECT COUNT(*) as count FROM guest', (countErr, result) => {
+            if (countErr) {
+              console.error('Database error:', countErr.message);
+              db.run('ROLLBACK');
+              return res.status(500).json({
+                success: false,
+                message: 'Failed to generate guest ID',
               });
             }
-          );
+
+            const guestId = `GUEST_${String(result.count + 1).padStart(2, '0')}`;
+
+            // Insert guest
+            const guestQuery =
+              'INSERT INTO guest (guest_id, person_id, room_number, vehicle_id, guest_request_id) VALUES (?, ?, ?, ?, ?)';
+
+            db.run(
+              guestQuery,
+              [guestId, personId, room_number, vehicle_id || null, guest_request_id],
+              function (guestErr) {
+                if (guestErr) {
+                  console.error('Database error:', guestErr.message);
+                  db.run('ROLLBACK');
+                  return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create guest',
+                    error: guestErr.message,
+                  });
+                }
+
+                db.run('COMMIT', (commitErr) => {
+                  if (commitErr) {
+                    console.error('Commit err:', commitErr.message);
+                    return res.status(500).json({ success: false, message: 'Failed to commit transaction' });
+                  }
+                  
+                  res.status(201).json({
+                    success: true,
+                    message: 'Guest created successfully',
+                    data: {
+                      guest_id: guestId,
+                      person_id: personId,
+                      room_number,
+                      vehicle_id: vehicle_id || null,
+                      guest_request_id,
+                      name: request.name,
+                      email: request.email,
+                      contact: request.contact,
+                    },
+                  });
+                });
+              }
+            );
+          });
         });
       });
     });
