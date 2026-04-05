@@ -4,10 +4,10 @@
 This directory contains a suite of Locust experiments designed to test the concurrency, performance, and transactional integrity of the backend system and its underlying custom B+ Tree database. The test suite evaluates whether the system correctly handles high load, concurrent resource modifications, race conditions, and mid-transaction failures.
 
 ## 2. Scripts Description
-* **`scripts/exp1_concurrent_updates.py`**: Tests isolation and consistency by having multiple simulated users rapidly attempt to update the exact same resource (e.g., Gate updates).
-* **`scripts/exp2_race_condition.py`**: Simulates a "stampede" scenario where many users attempt to claim the exact same limited resource simultaneously. Designed to detect race conditions like double-selling.
-* **`scripts/exp3_failure_simulation.py`**: Submits transactions flagged to fail midway through execution across multiple endpoints (guest requests, gate updates, blacklist additions). Designed to verify that the database correctly rolls back changes (Atomicity).
-* **`scripts/exp4_stress_test.py`**: Floods the API with a heavy mix of read and write requests (e.g., fetching logs and writing entry/exit logs) to measure system stability, throughput, and latency under high concurrency.
+* **`scripts/exp1_concurrent_updates.py`**: Tests isolation and consistency by having multiple simulated users rapidly attempt to update the exact same gate resource concurrently via `PUT /api/gates/{gate_id}`.
+* **`scripts/exp2_race_condition.py`**: Simulates a "stampede" scenario where many users attempt to approve the exact same guest request simultaneously via `PATCH /api/guest-requests/{request_id}/approve`. Designed to detect race conditions like double-approving.
+* **`scripts/exp3_failure_simulation.py`**: Submits transactions flagged to fail midway through execution across multiple endpoints (`POST /api/guest-requests`, `PUT /api/gates/{id}`, `POST /api/blacklist`). Designed to verify that the database correctly rolls back changes (Atomicity).
+* **`scripts/exp4_stress_test.py`**: Floods the API with a heavy mix of read and write requests (e.g., fetching logs via `GET /api/logs/peopleNeat`, and writing entry/exit logs via `POST /api/logs/entry` and `/api/logs/exit`) to measure system stability, throughput, and latency under high concurrency.
 
 ## 3. How to Run the Experiments
 The easiest way to run the entire suite and automatically save the results to `results_automated/*.txt` is by using the automation script:
@@ -42,19 +42,23 @@ locust -f experiments/scripts/exp4_stress_test.py --host=http://localhost:3000
 ## 4. What to Observe
 
 ### Experiment 1: Concurrent Updates
-* **Expected Behavior:** Endpoint returns 200s or 409s. No 5xx errors. Upon validation, the database reflects exactly one of the updates without any data corruption.
+* **Target:** `PUT /api/gates/{gate_id}`
+* **Expected Behavior:** Endpoint returns 200s or 409s when multiple users try to update the exact same gate's status and guards assigned at the same time. No 5xx errors. Upon validation, the database reflects exactly one of the updates without any data corruption.
 * **Failure Indicators:** Database crashes, deadlocks, or the final state shows corrupted or merged data.
 
 ### Experiment 2: Race Condition
-* **Expected Behavior:** Only the permitted number of users succeed (e.g., 1 user gets HTTP 200). All other concurrent requests correctly fail with an expected error (e.g., 400 or 409).
-* **Failure Indicators:** Multiple users succeed in claiming the same unique resource, leading to inconsistent state (overselling).
+* **Target:** `PATCH /api/guest-requests/{request_id}/approve`
+* **Expected Behavior:** Only the permitted first user who reaches the endpoint succeeds in approving the guest request (gets HTTP 200). All other parallel requests correctly fail with an expected error (e.g., 400 or 409) since the request is already approved.
+* **Failure Indicators:** Multiple users succeed in approving the same unique request, leading to inconsistent state (double-approving).
 
 ### Experiment 3: Failure Simulation
-* **Expected Behavior:** Rejection of the failing request (HTTP 4xx or 5xx). The database state remains completely unchanged; no partial modifications are committed.
+* **Target:** `POST /api/guest-requests`, `PUT /api/gates/{id}`, `POST /api/blacklist`
+* **Expected Behavior:** Intentional failures like malformed IDs, missing fields, or negative constraints trigger rejection (HTTP 4xx or 5xx). The database state remains completely unchanged; no partial modifications are committed.
 * **Failure Indicators:** The database maintains partial records from the aborted transaction.
 
 ### Experiment 4: Stress Test
-* **Expected Behavior:** The system handles the target load (e.g., 500-1000 users) without crashing. Response times might degrade, but the error rate remains at 0%.
+* **Target:** `GET /api/logs/peopleNeat`, `POST /api/logs/entry`, `POST /api/logs/exit`
+* **Expected Behavior:** Flooded with requests simulating heavy campus traffic, the system handles the target load (e.g., 500-1000 users) without crashing. Response times might degrade, but the error rate remains at 0%.
 * **Failure Indicators:** High error rates, connection timeouts, or the backend Node process crashing under load.
 
 ## 5. Mapping to ACID Properties

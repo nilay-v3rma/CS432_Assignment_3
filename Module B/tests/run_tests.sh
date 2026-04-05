@@ -23,25 +23,25 @@ echo "[1/4] Running Concurrent Updates Test (Isolation & Consistency)..."
 echo "🌐 Open http://localhost:8089 in your browser to start the test and view analysis."
 echo "Press Ctrl+C in this terminal to stop this test and proceed to the next one."
 python3 -m locust -f experiments/scripts/exp1_concurrent_updates.py \
-    --host="$URL" 2>&1 | tee "$RESULTS_DIR/exp1.txt"
+    --host="$URL" 2>&1
 
 echo "[2/4] Running Race Condition Test (Stampede Scenario)..."
 echo "🌐 Open http://localhost:8089 in your browser to start the test and view analysis."
 echo "Press Ctrl+C in this terminal to stop this test and proceed to the next one."
 python3 -m locust -f experiments/scripts/exp2_race_condition.py \
-    --host="$URL" 2>&1 | tee "$RESULTS_DIR/exp2.txt"
+    --host="$URL" 2>&1 
 
 echo "[3/4] Running Failure Simulation Test (Atomicity/Rollbacks)..."
 echo "🌐 Open http://localhost:8089 in your browser to start the test and view analysis."
 echo "Press Ctrl+C in this terminal to stop this test and proceed to the next one."
 python3 -m locust -f experiments/scripts/exp3_failure_simulation.py \
-    --host="$URL" 2>&1 | tee "$RESULTS_DIR/exp3.txt"
+    --host="$URL" 2>&1
 
 echo "[4/4] Running Stress Test (Heavy Load & Indexing Benchmark)..."
 echo "🌐 Open http://localhost:8089 in your browser to start the test and view analysis."
 echo "Press Ctrl+C in this terminal to stop this test and proceed to the next one."
 python3 -m locust -f experiments/scripts/exp4_stress_test.py \
-    --host="$URL" 2>&1 | tee "$RESULTS_DIR/exp4.txt"
+    --host="$URL" 2>&1
 
 echo "--------------------------------------------------------"
 echo "✅ All tests finished successfully!"
